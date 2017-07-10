@@ -9,10 +9,22 @@ namespace IGPresentation
     /// </summary>
     public class PresentationContent : MonoBehaviour
     {
-        public List<ContentProcess> TransitionProcesses = new List<ContentProcess>();
+        /// <summary> The list of transitions that need to be played when this content is activated.</summary>
+        public List<ContentProcess> transitionProcesses = new List<ContentProcess>();
 
         private HashSet<ContentProcess> activeProcesses = new HashSet<ContentProcess>();
 
+        protected void Awake()
+        {
+            if(transitionProcesses.Count == 0)
+            {
+                Debug.LogWarning(this.gameObject.name + " : has no contentProcess to use.");
+            }
+        }
+
+        /// <summary>
+        /// Update the transitions as a standard update.
+        /// </summary>
         public void updateTransitions()
         {
             foreach(ContentProcess cp in activeProcesses)
@@ -22,6 +34,9 @@ namespace IGPresentation
             }
         }
 
+        /// <summary>
+        /// Update the transitions as a fixed update.
+        /// </summary>
         public void fixedUpdateTransitions()
         {
             foreach (ContentProcess cp in activeProcesses)
@@ -31,34 +46,66 @@ namespace IGPresentation
             }
         }
 
+        /// <summary>
+        /// Returns whether the presentationContent is transiting or not.
+        /// </summary>
+        /// <returns>true if the presentationContent is currently transiting, false otherwise.</returns>
         public bool isTransiting()
         {
             return activeProcesses.Count > 0;
         }
 
+        /// <summary>
+        /// start all content processes bound to this content.
+        /// </summary>
         public void startTransitions()
         {
-           foreach(ContentProcess cp in activeProcesses)
-           {
-                cp.startProcess();
-           }
+            if(!isTransiting())
+            {
+                for(int i = 0; i < transitionProcesses.Count; ++i)
+                {
+                    activeProcesses.Add(transitionProcesses[i]);
+                }
+                foreach(ContentProcess cp in activeProcesses)
+                {
+                    cp.startProcess();
+                }
+            }
         }
 
+        /// <summary>
+        /// Set all transition to their ending state.
+        /// </summary>
         public void forceEndTransitions()
         {
-            foreach(ContentProcess cp in activeProcesses)
+            if(isTransiting())
             {
-                cp.endProcess();
-                checkActiveProcessEnded(cp);
+                //We only need to end prematurely active processes.
+                foreach (ContentProcess cp in activeProcesses)
+                {
+                    cp.endProcess();
+                    checkActiveProcessEnded(cp);
+                }
+            } else
+            {
+                for(int i = 0; i < transitionProcesses.Count; ++i)
+                {
+                    transitionProcesses[i].endProcess();
+                }
             }
+
         }
 
+        /// <summary>
+        /// Reset all transitions to their original state, and discard any active transition.
+        /// </summary>
         public void resetTransitions()
         {
-            foreach(ContentProcess cp in activeProcesses)
+            for(int i = 0; i < transitionProcesses.Count; ++i)
             {
-                cp.reset();
+                transitionProcesses[i].reset();
             }
+            activeProcesses.Clear();
         }
         
         private void checkActiveProcessEnded(ContentProcess cp)
@@ -71,4 +118,3 @@ namespace IGPresentation
     }
 
 }
-
