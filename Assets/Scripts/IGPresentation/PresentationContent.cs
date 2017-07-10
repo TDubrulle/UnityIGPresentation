@@ -18,6 +18,7 @@ namespace IGPresentation
             foreach(ContentProcess cp in activeProcesses)
             {
                 cp.updateProcess();
+                checkActiveProcessEnded(cp);
             }
         }
 
@@ -26,6 +27,7 @@ namespace IGPresentation
             foreach (ContentProcess cp in activeProcesses)
             {
                 cp.fixedUpdateProcess();
+                checkActiveProcessEnded(cp);
             }
         }
 
@@ -36,7 +38,10 @@ namespace IGPresentation
 
         public void startTransitions()
         {
-            
+           foreach(ContentProcess cp in activeProcesses)
+           {
+                cp.startProcess();
+           }
         }
 
         public void forceEndTransitions()
@@ -44,6 +49,7 @@ namespace IGPresentation
             foreach(ContentProcess cp in activeProcesses)
             {
                 cp.endProcess();
+                checkActiveProcessEnded(cp);
             }
         }
 
@@ -52,6 +58,14 @@ namespace IGPresentation
             foreach(ContentProcess cp in activeProcesses)
             {
                 cp.reset();
+            }
+        }
+        
+        private void checkActiveProcessEnded(ContentProcess cp)
+        {
+            if(cp.state == ContentProcessState.ENDED)
+            {
+                activeProcesses.Remove(cp);
             }
         }
     }
