@@ -11,6 +11,12 @@ namespace IGPresentation
         ENDED
     }
 
+    [System.Serializable]
+    public class ContentProcessParameters
+    {
+        public bool canBeForcedToEnd = true;
+    }
+
     /// <summary>
     /// Content processes are everything that is called when a content is reached. It can range from fading in or out a canvas item to moving or rotating an object, for instance.
     /// It is meant to be lightweight, so that update and fixedUpdate is not called when the content is inactive.
@@ -18,16 +24,26 @@ namespace IGPresentation
     /// </summary>
     public abstract class ContentProcess : MonoBehaviour
     {
+        public ContentProcessParameters processParameters = new ContentProcessParameters();
 
-        ContentProcessState currentState = ContentProcessState.INACTIVE;
+        private ContentProcessState currentState = ContentProcessState.INACTIVE;
+        /// <summary> The current active state of the process. </summary>
+        public ContentProcessState state { get { return currentState; } }
 
         /// <summary>
         /// Starts the process.
         /// </summary>
         public void startProcess()
         {
-            currentState = ContentProcessState.STARTED;
-            onStart();
+            if(currentState != ContentProcessState.STARTED)
+            {
+                currentState = ContentProcessState.STARTED;
+                onStart();
+            } else
+            {
+                Debug.LogWarning(this.gameObject.name + " : Cannot start contentProcess since it has already been started!", this.gameObject);
+            }
+
         }
 
         /// <summary>
@@ -35,7 +51,7 @@ namespace IGPresentation
         /// </summary>
         public void updateProcess()
         {
-
+            onUpdate();
         }
         
         /// <summary>
@@ -43,16 +59,33 @@ namespace IGPresentation
         /// </summary>
         public void fixedUpdateProcess()
         {
-
+            onFixedUpdate();
         }
 
         /// <summary>
-        /// End the process.
+        /// End the process manually, if it can be forced to end.
         /// </summary>
         public void endProcess()
         {
-            currentState = ContentProcessState.STARTED;
-            onEnd();
+            if(processParameters.canBeForcedToEnd)
+            {
+                end();
+            }
+        }
+
+        /// <summary>
+        /// End the process from inside the content process
+        /// </summary>
+        protected void end()
+        {
+            if(currentState != ContentProcessState.ENDED)
+            {
+                currentState = ContentProcessState.ENDED;
+                onEnd();
+            } else
+            {
+                Debug.LogWarning(this.gameObject.name + " : Cannot end contentProcess since it has already been ended!", this.gameObject);
+            }
         }
 
 
@@ -69,4 +102,3 @@ namespace IGPresentation
     }
 
 }
-
